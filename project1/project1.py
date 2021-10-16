@@ -3,6 +3,7 @@ import sys
 import networkx as nx
 import numpy as np
 from math import prod
+import matplotlib.pyplot as plt
 from pandas import read_csv
 import random
 from scipy.special import loggamma as lgamma
@@ -12,7 +13,8 @@ def write_gph(dag, idx2names, filename):
     with open(filename, 'w') as f:
         for edge in dag.edges():
             f.write("{}, {}\n".format(idx2names[edge[0]], idx2names[edge[1]]))
-
+    nx.draw(dag, with_labels=True, font_weight='bold')
+    plt.savefig(filename + '.png')
 
 class GraphExplorer:
     def __init__(self, D, G):
