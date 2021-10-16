@@ -93,12 +93,16 @@ def compute(infile, outfile):
 
     D = in_df.to_numpy()
     gexpl = GraphExplorer(D, G)
+
+    # K2 Search
+    max_parents = 2
+
     # optimize G w/ K2 Search
     ordered_vars = list(range(gexpl.n_vars))
     random.shuffle(ordered_vars)
     for i in ordered_vars:
         curr_score = gexpl.bayesian_score_unif_prior()
-        while True:
+        for _ in range(max_parents):
             best_score, best_pred = -float("inf"), None
             for pred in range(gexpl.n_vars):
                 score = gexpl.score_with_new_edge(pred, i)
