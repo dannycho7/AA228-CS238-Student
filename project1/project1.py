@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from pandas import read_csv
 import random
 from scipy.special import loggamma as lgamma
-
+import time
 
 def write_gph(dag, idx2names, filename):
     with open(filename, 'w') as f:
@@ -25,7 +25,8 @@ class GraphExplorer:
         self.G = G
         self.q = np.array([prod(r.take(list(G.predecessors(i))))
                            if G.in_degree(i) > 0 else 1 for i in range(self.n_vars)])
-        self.M = self.get_M()
+        self.M = {} # M is a dict i => np array(q_i, r_i)
+        self.init_M() # initializes self.M
         self.var_scores = [self.get_score_for_var(i) for i in range(
             self.n_vars)]  # maintain scores coming from each var
 
@@ -46,14 +47,16 @@ class GraphExplorer:
         pred_idxs = entry.take(preds) - 1
         return np.ravel_multi_index(pred_idxs, pred_shapes)
 
-    def get_M(self):
-        # M is a dict i => (q_i, r_i)
-        M = {i: np.zeros((self.q[i], self.r[i])) for i in range(self.n_vars)}
+    def init_M(self):
+        for i in range(self.n_vars):
+            self.update_M_i(i)
+
+    def update_M_i(self, i):
+        self.M[i] = np.zeros((self.q[i], self.r[i]))
         for entry in self.D:
-            for i, val in enumerate(entry):
-                k = val - 1
-                M[i][self.get_j(i, entry), k] += 1
-        return M
+            val = entry[i]
+            k = val - 1
+            self.M[i][self.get_j(i, entry), k] += 1
 
     def bayesian_score_unif_prior(self):
         # we can drop logP(G), since we are using uniform priors.
@@ -62,13 +65,13 @@ class GraphExplorer:
     def add_edge(self, x, y):
         self.G.add_edge(x, y)
         self.q[y] *= self.r[x]
-        self.M = self.get_M()
+        self.update_M_i(y)
         self.var_scores[y] = self.get_score_for_var(y)
 
     def remove_edge(self, x, y):
         self.G.remove_edge(x, y)
         self.q[y] //= self.r[x]
-        self.M = self.get_M()
+        self.update_M_i(y)
         self.var_scores[y] = self.get_score_for_var(y)
 
     # returns None if edge isn't a candidate for addition else score
