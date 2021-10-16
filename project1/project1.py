@@ -89,6 +89,7 @@ def compute(infile, outfile):
     # WRITE YOUR CODE HERE
     # FEEL FREE TO CHANGE ANYTHING ANYWHERE IN THE CODE
     # THIS INCLUDES CHANGING THE FUNCTION NAMES, MAKING THE CODE MODULAR, BASICALLY ANYTHING
+    start_time = time.time()
     in_df = read_csv(infile)
     G = nx.DiGraph()
     idx2names = []
@@ -120,7 +121,7 @@ def compute(infile, outfile):
                 print(f"Adding edge {best_pred} -> {i}")
             else:
                 break
-    print(f"final bayesian score = {gexpl.bayesian_score_unif_prior()}")
+    print(f"final bayesian score = {gexpl.bayesian_score_unif_prior()}. Ran for {(time.time() - start_time):.2f}s")
     write_gph(G, idx2names, outfile)
 
 
